@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Mis pedidos{% endblock %}
+{% block content %}
+<h1>Mis pedidos</h1>
+{% for ped in pedidos %}
+  <div class="order">
+    <strong>Pedido #{{ ped.id }}</strong> · {{ ped.fecha|date:"d/m/Y H:i" }} · Total: ${{ ped.total }}
+    <ul>
+      {% for d in ped.detalles.all %}
+        <li>{{ d.nombre_producto }} x{{ d.cantidad }} — ${{ d.precio_unitario }} c/u</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% empty %}
+  <p>Aún no tienes compras.</p>
+{% endfor %}
+{% endblock %}

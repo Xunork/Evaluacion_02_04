@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Categorías{% endblock %}
+{% block content %}
+<h1>Categorías</h1>
+<form method="post" class="form">
+  {% csrf_token %}{{ form.as_p }}
+  <button class="btn" type="submit">Agregar</button>
+</form>
+<ul class="list">
+{% for c in categorias %}<li><strong>{{ c.nombre }}</strong> — {{ c.descripcion }}</li>{% empty %}<li>Sin categorías.</li>{% endfor %}
+</ul>
+<p><a href="{% url 'panel_admin' %}">← Volver al panel</a></p>
+{% endblock %}
