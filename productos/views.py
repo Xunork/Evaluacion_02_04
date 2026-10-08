@@ -13,6 +13,9 @@ def es_admin(user):
     return user.is_authenticated and user.is_staff
 
 
+admin_required = user_passes_test(es_admin)
+
+
 def _get_cart(request):
     return request.session.get("carrito", {})
 
@@ -198,38 +201,37 @@ def mis_pedidos(request):
     return render(request, "mis_pedidos.html", {"pedidos": pedidos, "cart_count": cart_count})
 
 
-@login_required
-@user_passes_test(es_admin)
+@admin_required
 def panel_admin(request):
     productos = Producto.objects.select_related("categoria").all()
     return render(request, "admin_panel.html", {"productos": productos})
 
 
-@login_required
-@user_passes_test(es_admin)
+@admin_required
 def producto_crear(request):
-    form = ProductoForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Producto creado.")
-        return redirect("panel_admin")
-    return render(request, "producto_form.html", {"form": form, "titulo": "Nuevo producto"})
+    return _formulario_producto(request)
 
 
-@login_required
-@user_passes_test(es_admin)
+@admin_required
 def producto_editar(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
+    return _formulario_producto(request, producto)
+
+
+def _formulario_producto(request, producto=None):
+    nuevo = producto is None
     form = ProductoForm(request.POST or None, instance=producto)
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(request, "Producto actualizado.")
+        messages.success(
+            request, "Producto creado." if nuevo else "Producto actualizado."
+        )
         return redirect("panel_admin")
-    return render(request, "producto_form.html", {"form": form, "titulo": f"Editar: {producto.nombre}"})
+    titulo = "Nuevo producto" if nuevo else f"Editar: {producto.nombre}"
+    return render(request, "producto_form.html", {"form": form, "titulo": titulo})
 
 
-@login_required
-@user_passes_test(es_admin)
+@admin_required
 def producto_eliminar(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
     if request.method == "POST":
@@ -239,8 +241,7 @@ def producto_eliminar(request, pk):
     return render(request, "producto_confirmar.html", {"producto": producto})
 
 
-@login_required
-@user_passes_test(es_admin)
+@admin_required
 def categorias_admin(request):
     form = CategoriaForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
