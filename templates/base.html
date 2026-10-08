@@ -10,9 +10,10 @@
 <body>
 <header class="top">
   <div class="wrap top-inner">
-    <a class="logo" href="{% url 'tienda' %}">🔧 Ferretería <span>El Martillo</span></a>
+    <a class="logo" href="{% url 'inicio' %}">🔧 Ferretería <span>El Martillo</span></a>
     <nav class="nav">
-      <a href="{% url 'tienda' %}">Inicio</a>
+      <a href="{% url 'inicio' %}">Inicio</a>
+      <a href="{% url 'tienda' %}">Catálogo</a>
       <a href="{% url 'carrito' %}">Carrito{% if cart_count %} ({{ cart_count }}){% endif %}</a>
       {% if user.is_authenticated %}
         {% if user.is_staff %}

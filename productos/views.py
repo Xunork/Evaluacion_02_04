@@ -4,6 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Count
 from .models import Producto, Categoria, Pedido, DetallePedido
 from .forms import RegistroForm, ProductoForm, CategoriaForm
 
@@ -11,8 +12,6 @@ from .forms import RegistroForm, ProductoForm, CategoriaForm
 def es_admin(user):
     return user.is_authenticated and user.is_staff
 
-
-# ---------- Carrito en sesión ----------
 
 def _get_cart(request):
     return request.session.get("carrito", {})
@@ -43,7 +42,17 @@ def _cart_detalle(cart):
     return items, total, count
 
 
-# ---------- Tienda (cliente) ----------
+def landing(request):
+    categorias = Categoria.objects.annotate(n=Count("productos")).all()
+    destacados = Producto.objects.select_related("categoria").order_by("-stock")[:4]
+    _, _, cart_count = _cart_detalle(_get_cart(request))
+    return render(request, "landing.html", {
+        "categorias": categorias,
+        "destacados": destacados,
+        "total_productos": Producto.objects.count(),
+        "cart_count": cart_count,
+    })
+
 
 def tienda(request):
     q = request.GET.get("q", "").strip()
@@ -70,8 +79,6 @@ def detalle(request, pk):
     _, _, cart_count = _cart_detalle(_get_cart(request))
     return render(request, "detalle.html", {"producto": producto, "cart_count": cart_count})
 
-
-# ---------- Auth ----------
 
 def vista_registro(request):
     if request.user.is_authenticated:
@@ -105,8 +112,6 @@ def vista_logout(request):
     messages.info(request, "Sesión cerrada.")
     return redirect("tienda")
 
-
-# ---------- Carrito ----------
 
 def carrito_ver(request):
     items, total, count = _cart_detalle(_get_cart(request))
@@ -154,7 +159,7 @@ def carrito_actualizar(request, pk):
 
 
 @login_required
-@transaction.atomic  # todo o nada: si algo falla, no se descuenta nada
+@transaction.atomic
 def checkout(request):
     if request.method != "POST":
         return redirect("carrito")
@@ -164,14 +169,12 @@ def checkout(request):
         return redirect("tienda")
     ids = [int(k) for k in cart.keys()]
     productos = {p.id: p for p in Producto.objects.filter(id__in=ids)}
-    # Validar
     for pid_str, cant in cart.items():
         p = productos.get(int(pid_str))
         if not p or int(cant) > p.stock:
             nombre = p.nombre if p else f"#{pid_str}"
             messages.error(request, f"Sin stock suficiente de {nombre}. Ajusta tu carrito.")
             return redirect("carrito")
-    # Crear pedido y BAJAR STOCK (requisito)
     total = sum(productos[int(pid)].precio * int(cant) for pid, cant in cart.items())
     pedido = Pedido.objects.create(usuario=request.user, total=total)
     for pid_str, cant in cart.items():
@@ -194,8 +197,6 @@ def mis_pedidos(request):
     _, _, cart_count = _cart_detalle(_get_cart(request))
     return render(request, "mis_pedidos.html", {"pedidos": pedidos, "cart_count": cart_count})
 
-
-# ---------- Panel admin simple (staff) ----------
 
 @login_required
 @user_passes_test(es_admin)

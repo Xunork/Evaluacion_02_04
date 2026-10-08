@@ -14,14 +14,13 @@ class DetalleInline(admin.TabularInline):
 
 
 class ProductoAdmin(admin.ModelAdmin):
-    # Requisito: poder modificar Nombre, Precio, Stock, Categoria, Descripcion
     list_display = ("nombre", "precio", "stock", "categoria")
     list_editable = ("precio", "stock")
     list_filter = ("categoria",)
     search_fields = ("nombre", "descripcion")
     fields = ("nombre", "precio", "stock", "categoria", "descripcion")
     list_per_page = 20
-    save_on_top = True  # botón Guardar también arriba (los cambios de precio/stock se guardan con ese botón)
+    save_on_top = True
 
 
 class PedidoAdmin(admin.ModelAdmin):

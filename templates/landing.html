@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Ferretería El Martillo{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="hero-badge">Catálogo online · {{ total_productos }} productos</p>
+  <h1>Todo para tu proyecto,<br>en un solo lugar.</h1>
+  <p class="hero-sub">Herramientas, fijaciones, pinturas, electricidad y plomería con stock actualizado. Compra en línea y revisa tu pedido.</p>
+  <div class="cta-row">
+    <a class="btn" href="{% url 'tienda' %}">Ver catálogo</a>
+    {% if user.is_authenticated %}
+      <a class="btn ghost light" href="{% url 'carrito' %}">Ir a mi carrito</a>
+    {% else %}
+      <a class="btn ghost light" href="{% url 'login' %}">Ingresar</a>
+    {% endif %}
+  </div>
+  <div class="stats">
+    <div><strong>{{ total_productos }}</strong><span>productos</span></div>
+    <div><strong>{{ categorias|length }}</strong><span>categorías</span></div>
+    <div><strong>24 h</strong><span>pedido en línea</span></div>
+  </div>
+</section>
+
+<h2 class="sec-title">Compra por categoría</h2>
+<div class="cat-grid">
+  {% for c in categorias %}
+  <a class="cat-card" href="{% url 'tienda' %}?categoria={{ c.id }}">
+    <strong>{{ c.nombre }}</strong>
+    <span>{{ c.n }} productos</span>
+  </a>
+  {% endfor %}
+</div>
+
+<h2 class="sec-title">Destacados</h2>
+<div class="grid">
+  {% for p in destacados %}
+  <article class="card">
+    <div class="thumb">{{ p.nombre|first|upper }}</div>
+    <h3><a href="{% url 'detalle' p.id %}">{{ p.nombre }}</a></h3>
+    <p class="cat">{{ p.categoria.nombre|default:"Sin categoría" }}</p>
+    <p class="price">${{ p.precio }}</p>
+    <p class="stock">Stock: {{ p.stock }}</p>
+    <a class="btn" href="{% url 'carrito_agregar' p.id %}">Agregar al carrito</a>
+  </article>
+  {% endfor %}
+</div>
+
+<section class="band">
+  <div>
+    <h2>¿Administras la tienda?</h2>
+    <p>Actualiza precios, stock y categorías desde el panel.</p>
+  </div>
+  <a class="btn" href="{% url 'panel_admin' %}">Ir al panel</a>
+</section>
+{% endblock %}

@@ -16,7 +16,6 @@ class RegistroForm(UserCreationForm):
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
-        # Campos que el admin puede modificar (requisito)
         fields = ["nombre", "precio", "stock", "categoria", "descripcion"]
         labels = {
             "nombre": "Nombre",
